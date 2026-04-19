@@ -16,13 +16,14 @@ public sealed class SystemdServiceCollector
     public async Task<ServiceStatusInfo> CollectAsync(string unitName, CancellationToken ct)
     {
         var result = new ServiceStatusInfo();
+        var command = $"systemctl --system show {unitName} --property=ActiveState,SubState,ExecMainStartTimestamp --no-pager";
 
         try
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "systemctl",
-                Arguments = $"--system show {unitName} --property=ActiveState,SubState,ExecMainStartTimestamp --no-pager",
+                FileName = "/bin/sh",
+                Arguments = $"-lc \"{command}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -37,7 +38,20 @@ public sealed class SystemdServiceCollector
             }
 
             var output = await process.StandardOutput.ReadToEndAsync(ct);
+            var error = await process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
+
+            if (process.ExitCode != 0)
+            {
+                LogOnce("systemctl exited with code {Code} for {Unit}: {Error}", process.ExitCode, unitName, error.Trim());
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                LogOnce("systemctl returned no output for {Unit}");
+                return result;
+            }
 
             foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
             {
