@@ -1,4 +1,4 @@
-namespace MobianWebMonitor.Resources;
+namespace MobianWebMonitor;
 
 public sealed class AppStrings
 {
