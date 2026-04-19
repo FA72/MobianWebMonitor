@@ -8,7 +8,7 @@ RUN dotnet restore -a $TARGETARCH
 COPY src/MobianWebMonitor/ ./
 RUN dotnet publish -a $TARGETARCH -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
 WORKDIR /app
 
 RUN adduser --disabled-password --gecos '' --uid 1000 appuser \
