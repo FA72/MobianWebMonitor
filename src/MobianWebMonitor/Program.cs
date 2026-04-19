@@ -47,7 +47,7 @@ if (args.Length >= 1 && args[0] == "--healthcheck")
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddLocalization();
 
 // Options
 builder.Services.Configure<HostPathsOptions>(builder.Configuration.GetSection("HostPaths"));
