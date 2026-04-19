@@ -1,40 +1,75 @@
-name: Deploy
+name: Deploy Phone
 
 on:
+  workflow_run:
+    workflows: [Publish Container]
+    types: [completed]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check deploy secrets
+        id: preflight
+        env:
+          PHONE_SSH_HOST: ${{ secrets.PHONE_SSH_HOST }}
+          PHONE_SSH_USER: ${{ secrets.PHONE_SSH_USER }}
+          PHONE_SSH_PRIVATE_KEY: ${{ secrets.PHONE_SSH_PRIVATE_KEY }}
+        run: |
+          if [[ -n "$PHONE_SSH_HOST" && -n "$PHONE_SSH_USER" && -n "$PHONE_SSH_PRIVATE_KEY" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Phone deploy secrets are not configured. Skipping deploy job."
+          fi
 
-      - name: Copy deploy files to server
-        uses: appleboy/scp-action@v0.1.7
+      - name: Checkout
+        if: steps.preflight.outputs.configured == 'true'
+        uses: actions/checkout@v4
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-          source: "deploy/phone/compose.yaml,deploy/phone/.env.example,deploy/phone/update.sh"
-          target: ~/mobian-web-monitor
-          strip_components: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1
+      - name: Start SSH agent
+        if: steps.preflight.outputs.configured == 'true'
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-          script: |
-            cd ~/mobian-web-monitor/deploy/phone
-            
-            # Pull and restart
-            docker compose pull
-            docker compose up -d
-            
-            # Ensure shared Caddy can reach the app network
-            docker network connect caddy_net mobian-web-monitor-app 2>/dev/null || true
-            
-            # Show status
-            docker compose ps
+          ssh-private-key: ${{ secrets.PHONE_SSH_PRIVATE_KEY }}
+
+      - name: Trust SSH host
+        if: steps.preflight.outputs.configured == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.PHONE_SSH_PORT || '22' }}" "${{ secrets.PHONE_SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Archive deploy bundle
+        if: steps.preflight.outputs.configured == 'true'
+        run: tar -czf deploy-phone.tgz deploy/phone
+
+      - name: Upload deploy bundle
+        if: steps.preflight.outputs.configured == 'true'
+        run: |
+          scp -P "${{ secrets.PHONE_SSH_PORT || '22' }}" deploy-phone.tgz \
+            "${{ secrets.PHONE_SSH_USER }}@${{ secrets.PHONE_SSH_HOST }}:~/deploy-phone.tgz"
+
+      - name: Deploy on phone
+        if: steps.preflight.outputs.configured == 'true'
+        run: |
+          ssh -p "${{ secrets.PHONE_SSH_PORT || '22' }}" \
+            "${{ secrets.PHONE_SSH_USER }}@${{ secrets.PHONE_SSH_HOST }}" '
+            set -euo pipefail
+            PROJECT_DIR=~/mobian-web-monitor
+            mkdir -p "$PROJECT_DIR"
+            tar -xzf ~/deploy-phone.tgz -C "$PROJECT_DIR"
+            rm -f ~/deploy-phone.tgz
+            chmod +x "$PROJECT_DIR/deploy/phone/update.sh"
+            cd "$PROJECT_DIR/deploy/phone"
+            ./update.sh
+          '
