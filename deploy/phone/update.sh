@@ -9,6 +9,11 @@ if [ "$(stat -c '%u' volumes/history 2>/dev/null)" != "1000" ]; then
   chown 1000:1000 volumes/history 2>/dev/null || chmod 777 volumes/history
 fi
 
+mkdir -p volumes/protection-keys
+if [ "$(stat -c '%u' volumes/protection-keys 2>/dev/null)" != "1000" ]; then
+  chown 1000:1000 volumes/protection-keys 2>/dev/null || chmod 777 volumes/protection-keys
+fi
+
 echo "Pulling latest image..."
 docker compose pull
 

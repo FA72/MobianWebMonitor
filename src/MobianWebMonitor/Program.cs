@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.IO;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -47,6 +49,9 @@ if (args.Length >= 1 && args[0] == "--healthcheck")
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLocalization();
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/data/protection-keys"))
+    .SetApplicationName("MobianWebMonitor");
 
 // Options
 builder.Services.Configure<HostPathsOptions>(builder.Configuration.GetSection("HostPaths"));

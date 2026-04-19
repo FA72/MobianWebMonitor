@@ -16,6 +16,7 @@ services:
       DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
     volumes:
       - ./volumes/history:/data/history
+      - ./volumes/protection-keys:/data/protection-keys
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
