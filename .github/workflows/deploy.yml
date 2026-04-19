@@ -10,6 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Copy deploy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          source: "deploy/phone/compose.yaml,deploy/phone/.env.example,deploy/phone/update.sh"
+          target: ~/mobian-web-monitor
+          strip_components: 0
+
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
@@ -17,13 +27,9 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
           script: |
-            cd ~/mobian-web-monitor
-            
-            # Update deploy files
-            mkdir -p deploy/phone
+            cd ~/mobian-web-monitor/deploy/phone
             
             # Pull and restart
-            cd deploy/phone
             docker compose pull
             docker compose up -d
             
