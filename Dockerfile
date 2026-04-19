@@ -2,11 +2,13 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG TARGETARCH
 WORKDIR /src
 
-COPY src/MobianWebMonitor/*.csproj ./
-RUN dotnet restore -a $TARGETARCH
+COPY src/MobianWebMonitor/MobianWebMonitor.csproj src/MobianWebMonitor/
+RUN dotnet restore src/MobianWebMonitor/MobianWebMonitor.csproj -a $TARGETARCH
 
-COPY src/MobianWebMonitor/ ./
-RUN dotnet publish -a $TARGETARCH -c Release -o /app --no-restore
+COPY src/MobianWebMonitor/ src/MobianWebMonitor/
+WORKDIR /src/src/MobianWebMonitor
+RUN dotnet publish MobianWebMonitor.csproj -a $TARGETARCH -c Release -o /app
+RUN install -D "$(find /usr/share/dotnet -type f -name blazor.server.js | head -n 1)" /app/wwwroot/js/blazor.server.js
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
 WORKDIR /app

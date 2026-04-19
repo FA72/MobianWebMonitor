@@ -30,8 +30,12 @@ if (args.Length >= 1 && args[0] == "--healthcheck")
     using var client = new HttpClient();
     try
     {
-        var response = await client.GetAsync("http://localhost:8082/login");
-        return response.IsSuccessStatusCode ? 0 : 1;
+        var loginResponse = await client.GetAsync("http://localhost:8082/login");
+        if (!loginResponse.IsSuccessStatusCode)
+            return 1;
+
+        var blazorScriptResponse = await client.GetAsync("http://localhost:8082/js/blazor.server.js");
+        return blazorScriptResponse.IsSuccessStatusCode ? 0 : 1;
     }
     catch
     {
@@ -113,6 +117,7 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();

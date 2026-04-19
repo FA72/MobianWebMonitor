@@ -16,7 +16,7 @@
 <body>
     <Routes />
     <ReconnectModal />
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_framework/blazor.web.js"]" onerror="this.onerror=null;this.src='/js/blazor.server.js';"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <script src="@Assets["js/chart-interop.js"]"></script>
 </body>
