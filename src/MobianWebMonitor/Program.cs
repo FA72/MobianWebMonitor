@@ -20,7 +20,7 @@ if (args.Length >= 2 && args[0] == "--generate-hash")
     var hasher = new PasswordHasher<object>();
     var hash = hasher.HashPassword(new object(), args[1]);
     Console.WriteLine(hash);
-    return;
+    return 0;
 }
 
 // CLI: container healthcheck
@@ -124,3 +124,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+return 0;
