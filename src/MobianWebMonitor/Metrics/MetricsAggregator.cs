@@ -16,6 +16,7 @@ public sealed class MetricsAggregator
     {
         lock (_lock)
         {
+            battery.BatteryLimiterStatus ??= _current.Battery.BatteryLimiterStatus;
             _current.Cpu = cpu;
             _current.Memory = memory;
             _current.Battery = battery;
