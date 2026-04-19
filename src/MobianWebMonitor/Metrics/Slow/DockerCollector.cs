@@ -6,7 +6,11 @@ namespace MobianWebMonitor.Metrics.Slow;
 
 public sealed class DockerCollector : IDisposable
 {
+    private static readonly TimeSpan StatsTimeout = TimeSpan.FromSeconds(2);
     private readonly ILogger<DockerCollector> _logger;
+    private readonly Lock _cacheLock = new();
+    private readonly Dictionary<string, CachedContainerMetadata> _metadataCache = [];
+    private readonly Dictionary<string, CachedContainerStats> _statsCache = [];
     private DockerClient? _client;
     private bool _errorLogged;
 
@@ -27,40 +31,62 @@ public sealed class DockerCollector : IDisposable
             var containers = await client.Containers.ListContainersAsync(
                 new ContainersListParameters { All = true }, ct);
 
+            var seenContainerIds = new HashSet<string>(StringComparer.Ordinal);
+
             foreach (var c in containers)
             {
-                var details = await client.Containers.InspectContainerAsync(c.ID, ct);
-                var startedAtUtc = ParseDockerTimestamp(details.State?.StartedAt);
+                seenContainerIds.Add(c.ID);
 
-                var info = new DockerContainerInfo
+                try
                 {
-                    Name = c.Names.FirstOrDefault()?.TrimStart('/') ?? "unknown",
-                    Status = c.Status ?? "N/A",
-                    State = details.State?.Status ?? c.State ?? "unknown",
-                    ImageTag = c.Image ?? "N/A",
-                    Uptime = FormatUptime(startedAtUtc, details.State?.Status ?? c.State),
-                    StartedAtUtc = startedAtUtc
-                };
+                    var state = c.State ?? "unknown";
+                    var isRunning = string.Equals(state, "running", StringComparison.OrdinalIgnoreCase);
+                    var startedAtUtc = isRunning
+                        ? await GetStartedAtUtcAsync(client, c.ID, state, ct)
+                        : null;
 
-                if (string.Equals(info.State, "running", StringComparison.OrdinalIgnoreCase))
-                {
-                    try
+                    var info = new DockerContainerInfo
                     {
-                        var stats = await GetContainerStatsAsync(client, c.ID, ct);
-                        if (stats != null)
+                        Name = c.Names.FirstOrDefault()?.TrimStart('/') ?? "unknown",
+                        Status = c.Status ?? "N/A",
+                        State = state,
+                        ImageTag = c.Image ?? "N/A",
+                        Uptime = FormatUptime(startedAtUtc, state),
+                        StartedAtUtc = startedAtUtc
+                    };
+
+                    if (isRunning)
+                    {
+                        try
                         {
-                            info.CpuUsage = FormatCpuPercent(stats);
-                            info.MemoryUsage = FormatMemoryUsage(stats);
+                            var stats = await GetContainerStatsAsync(client, c.ID, ct);
+                            if (stats != null)
+                            {
+                                info.CpuUsage = FormatCpuPercent(stats);
+                                info.MemoryUsage = FormatMemoryUsage(stats);
+                                info.ResourceStatsAreStale = false;
+                                UpdateStatsCache(c.ID, info.CpuUsage, info.MemoryUsage);
+                            }
+                            else
+                            {
+                                ApplyCachedStats(info, c.ID);
+                            }
+                        }
+                        catch
+                        {
+                            ApplyCachedStats(info, c.ID);
                         }
                     }
-                    catch
-                    {
-                        // Stats not available for this container
-                    }
-                }
 
-                result.Add(info);
+                    result.Add(info);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Skipping Docker metrics for container {ContainerId}", c.ID);
+                }
             }
+
+            TrimCaches(seenContainerIds);
 
             _errorLogged = false;
         }
@@ -70,6 +96,73 @@ public sealed class DockerCollector : IDisposable
         }
 
         return result;
+    }
+
+    private async Task<DateTime?> GetStartedAtUtcAsync(
+        DockerClient client,
+        string containerId,
+        string state,
+        CancellationToken ct)
+    {
+        lock (_cacheLock)
+        {
+            if (_metadataCache.TryGetValue(containerId, out var cached) &&
+                string.Equals(cached.State, state, StringComparison.OrdinalIgnoreCase))
+            {
+                return cached.StartedAtUtc;
+            }
+        }
+
+        var details = await client.Containers.InspectContainerAsync(containerId, ct);
+        var startedAtUtc = ParseDockerTimestamp(details.State?.StartedAt);
+
+        lock (_cacheLock)
+        {
+            _metadataCache[containerId] = new CachedContainerMetadata(startedAtUtc, state);
+        }
+
+        return startedAtUtc;
+    }
+
+    private void ApplyCachedStats(DockerContainerInfo info, string containerId)
+    {
+        lock (_cacheLock)
+        {
+            if (!_statsCache.TryGetValue(containerId, out var cached))
+            {
+                return;
+            }
+
+            info.CpuUsage = cached.CpuUsage;
+            info.MemoryUsage = cached.MemoryUsage;
+            info.ResourceStatsAreStale = true;
+        }
+    }
+
+    private void UpdateStatsCache(string containerId, string cpuUsage, string memoryUsage)
+    {
+        lock (_cacheLock)
+        {
+            _statsCache[containerId] = new CachedContainerStats(cpuUsage, memoryUsage);
+        }
+    }
+
+    private void TrimCaches(HashSet<string> seenContainerIds)
+    {
+        lock (_cacheLock)
+        {
+            var metadataKeysToRemove = _metadataCache.Keys.Where(id => !seenContainerIds.Contains(id)).ToArray();
+            foreach (var key in metadataKeysToRemove)
+            {
+                _metadataCache.Remove(key);
+            }
+
+            var statsKeysToRemove = _statsCache.Keys.Where(id => !seenContainerIds.Contains(id)).ToArray();
+            foreach (var key in statsKeysToRemove)
+            {
+                _statsCache.Remove(key);
+            }
+        }
     }
 
     private DockerClient? GetClient()
@@ -102,7 +195,7 @@ public sealed class DockerCollector : IDisposable
         ContainerStatsResponse? statsResponse = null;
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(TimeSpan.FromSeconds(3));
+        cts.CancelAfter(StatsTimeout);
 
         await client.Containers.GetContainerStatsAsync(
             containerId,
@@ -184,4 +277,8 @@ public sealed class DockerCollector : IDisposable
     {
         _client?.Dispose();
     }
+
+    private sealed record CachedContainerMetadata(DateTime? StartedAtUtc, string State);
+
+    private sealed record CachedContainerStats(string CpuUsage, string MemoryUsage);
 }

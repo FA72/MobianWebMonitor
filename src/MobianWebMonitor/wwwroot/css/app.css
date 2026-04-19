@@ -378,6 +378,14 @@ html, body {
     color: var(--text-secondary);
 }
 
+.docker-detail .value {
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-stale {
+    color: var(--warning);
+}
+
 .status-running { color: var(--success); }
 .status-stopped { color: var(--danger); }
 .status-other   { color: var(--warning); }

@@ -8,7 +8,6 @@ using MobianWebMonitor.Auth;
 using MobianWebMonitor.Api;
 using MobianWebMonitor.Components;
 using MobianWebMonitor.Hardware;
-using MobianWebMonitor.Hubs;
 using MobianWebMonitor.Metrics;
 using MobianWebMonitor.Metrics.Fast;
 using MobianWebMonitor.Metrics.Slow;
@@ -94,9 +93,6 @@ builder.Services.AddHostedService<FastMetricsService>();
 builder.Services.AddHostedService<SlowMetricsService>();
 builder.Services.AddHostedService<HistoryCleanupService>();
 
-// SignalR
-builder.Services.AddSignalR();
-
 // Blazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -146,9 +142,6 @@ app.MapStaticAssets();
 app.MapAuthEndpoints();
 app.MapOverviewEndpoints();
 app.MapHistoryEndpoints();
-
-// SignalR
-app.MapHub<MetricsHub>("/hubs/metrics");
 
 // Blazor
 app.MapRazorComponents<App>()

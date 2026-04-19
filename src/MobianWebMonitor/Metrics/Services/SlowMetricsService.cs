@@ -11,7 +11,7 @@ public sealed class SlowMetricsService : BackgroundService
     private readonly ILogger<SlowMetricsService> _logger;
 
     private const int DiskIntervalSeconds = 30;
-    private const int DockerIntervalSeconds = 10;
+    private const int DockerIntervalSeconds = 15;
     private const int ServiceIntervalSeconds = 10;
 
     public SlowMetricsService(

@@ -64,25 +64,15 @@
     private string FormatBatteryStatus()
     {
         var value = Battery.Status ?? Battery.ChargeStatus;
-        return value?.ToLowerInvariant() switch
-        {
-            "charging" => L["Charging"],
-            "discharging" => L["Discharging"],
-            "full" => L["Full"],
-            "not charging" => L["NotCharging"],
-            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
-            _ => value
-        };
+        return string.IsNullOrWhiteSpace(value)
+            ? L["NotAvailable"].Value
+            : value;
     }
 
     private string FormatHealth(string? value) =>
-        value?.ToLowerInvariant() switch
-        {
-            "good" => L["Good"],
-            "unknown" => L["Unknown"],
-            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
-            _ => value
-        };
+        string.IsNullOrWhiteSpace(value)
+            ? L["NotAvailable"].Value
+            : value;
 
     private string FormatServiceState(string? value) =>
         value?.ToLowerInvariant() switch

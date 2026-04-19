@@ -10,4 +10,5 @@ public sealed class DockerContainerInfo
     public DateTime? StartedAtUtc { get; set; }
     public string CpuUsage { get; set; } = "N/A";
     public string MemoryUsage { get; set; } = "N/A";
+    public bool ResourceStatsAreStale { get; set; }
 }

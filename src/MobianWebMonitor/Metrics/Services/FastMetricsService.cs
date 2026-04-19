@@ -1,7 +1,5 @@
-using MobianWebMonitor.Hubs;
 using MobianWebMonitor.Metrics.Fast;
 using MobianWebMonitor.Storage;
-using Microsoft.AspNetCore.SignalR;
 
 namespace MobianWebMonitor.Metrics.Services;
 
@@ -12,7 +10,6 @@ public sealed class FastMetricsService : BackgroundService
     private readonly BatteryCollector _battery;
     private readonly MetricsAggregator _aggregator;
     private readonly HistoryStorage _storage;
-    private readonly IHubContext<MetricsHub> _hub;
     private readonly ILogger<FastMetricsService> _logger;
     private int _sampleCounter;
 
@@ -22,7 +19,6 @@ public sealed class FastMetricsService : BackgroundService
         BatteryCollector battery,
         MetricsAggregator aggregator,
         HistoryStorage storage,
-        IHubContext<MetricsHub> hub,
         ILogger<FastMetricsService> logger)
     {
         _cpu = cpu;
@@ -30,7 +26,6 @@ public sealed class FastMetricsService : BackgroundService
         _battery = battery;
         _aggregator = aggregator;
         _storage = storage;
-        _hub = hub;
         _logger = logger;
     }
 
@@ -49,13 +44,13 @@ public sealed class FastMetricsService : BackgroundService
 
                 _aggregator.UpdateFast(cpu, memory, battery);
 
-                // Write to history every 5 seconds to reduce disk I/O
+                // Write to history every 15 seconds to reduce disk I/O
                 _sampleCounter++;
-                if (_sampleCounter >= 5)
+                if (_sampleCounter >= 15)
                 {
                     _sampleCounter = 0;
                     var now = DateTime.UtcNow;
-                    await _storage.WriteSamplesAsync(now, new Dictionary<string, double?>
+                    var samples = new Dictionary<string, double?>
                     {
                         ["cpu.total"] = cpu.TotalUsagePercent,
                         ["mem.used_pct"] = memory.UsedPercent,
@@ -63,15 +58,16 @@ public sealed class FastMetricsService : BackgroundService
                         ["mem.free_pct"] = memory.FreePercent,
                         ["bat.capacity"] = battery.CapacityPercent,
                         ["bat.temp"] = battery.TemperatureCelsius
-                    });
+                    };
 
                     for (int i = 0; i < cpu.CoreUsagePercents.Count; i++)
-                        await _storage.WriteSampleAsync(now, $"cpu.core{i}", cpu.CoreUsagePercents[i]);
+                    {
+                        samples[$"cpu.core{i}"] = cpu.CoreUsagePercents[i];
+                    }
+
+                    await _storage.WriteSamplesAsync(now, samples);
                 }
 
-                // Push to connected clients
-                var snapshot = _aggregator.Current;
-                await _hub.Clients.All.SendAsync("ReceiveMetrics", snapshot, stoppingToken);
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex)

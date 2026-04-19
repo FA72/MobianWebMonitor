@@ -26,11 +26,11 @@
                     </div>
                     <div class="docker-detail">
                         <span class="label">@L["CPU"]</span>
-                        <span class="value">@container.CpuUsage</span>
+                        <span class="value @(container.ResourceStatsAreStale ? "metric-stale" : string.Empty)">@container.CpuUsage</span>
                     </div>
                     <div class="docker-detail">
                         <span class="label">@L["RAM"]</span>
-                        <span class="value">@container.MemoryUsage</span>
+                        <span class="value @(container.ResourceStatsAreStale ? "metric-stale" : string.Empty)">@container.MemoryUsage</span>
                     </div>
                 </div>
             </div>
