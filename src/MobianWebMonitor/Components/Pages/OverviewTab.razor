@@ -1,0 +1,86 @@
+@namespace MobianWebMonitor.Components
+
+<div class="overview-tab">
+    <div class="metric-group">
+        <h3>CPU</h3>
+        <div class="metric-row">
+            <span class="metric-label">Total</span>
+            <span class="metric-value">@Snapshot.Cpu.TotalUsagePercent.ToString("F1")%</span>
+        </div>
+        @for (int i = 0; i < Snapshot.Cpu.CoreUsagePercents.Count; i++)
+        {
+            var idx = i;
+            <div class="metric-row">
+                <span class="metric-label">Core @idx</span>
+                <span class="metric-value">@Snapshot.Cpu.CoreUsagePercents[idx].ToString("F1")%</span>
+            </div>
+        }
+    </div>
+
+    <div class="metric-group">
+        <h3>Memory</h3>
+        <div class="metric-row">
+            <span class="metric-label">Used</span>
+            <span class="metric-value">@FormatKb(Snapshot.Memory.UsedKb) (@Snapshot.Memory.UsedPercent%)</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Cached</span>
+            <span class="metric-value">@FormatKb(Snapshot.Memory.CachedKb) (@Snapshot.Memory.CachedPercent%)</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Free</span>
+            <span class="metric-value">@FormatKb(Snapshot.Memory.FreeKb) (@Snapshot.Memory.FreePercent%)</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Total</span>
+            <span class="metric-value">@FormatKb(Snapshot.Memory.TotalKb)</span>
+        </div>
+        @if (Snapshot.Memory.SwapTotalKb > 0)
+        {
+            <div class="metric-row">
+                <span class="metric-label">Swap</span>
+                <span class="metric-value">@FormatKb(Snapshot.Memory.SwapUsedKb ?? 0) / @FormatKb(Snapshot.Memory.SwapTotalKb ?? 0)</span>
+            </div>
+        }
+    </div>
+
+    <div class="metric-group">
+        <h3>Disk</h3>
+        <div class="metric-row">
+            <span class="metric-label">@Snapshot.Disk.MountPoint</span>
+            <span class="metric-value">@FormatBytes(Snapshot.Disk.UsedBytes) / @FormatBytes(Snapshot.Disk.TotalBytes) (@Snapshot.Disk.UsedPercent%)</span>
+        </div>
+    </div>
+
+    <div class="metric-group">
+        <h3>Service</h3>
+        <div class="metric-row">
+            <span class="metric-label">battery-limiter</span>
+            <span class="metric-value limiter-@Snapshot.BatteryLimiterService.ActiveState.ToLowerInvariant()">
+                @Snapshot.BatteryLimiterService.ActiveState
+                @if (Snapshot.BatteryLimiterService.SubState != "N/A")
+                {
+                    <small>(@Snapshot.BatteryLimiterService.SubState)</small>
+                }
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public MetricsSnapshot Snapshot { get; set; } = new();
+
+    private static string FormatKb(long kb) => kb switch
+    {
+        >= 1_048_576 => $"{kb / 1_048_576.0:F1} GB",
+        >= 1024 => $"{kb / 1024.0:F0} MB",
+        _ => $"{kb} KB"
+    };
+
+    private static string FormatBytes(long bytes) => bytes switch
+    {
+        >= 1_073_741_824 => $"{bytes / 1_073_741_824.0:F1} GB",
+        >= 1_048_576 => $"{bytes / 1_048_576.0:F1} MB",
+        _ => $"{bytes / 1024.0:F0} KB"
+    };
+}

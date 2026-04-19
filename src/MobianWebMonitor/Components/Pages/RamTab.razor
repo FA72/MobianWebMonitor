@@ -1,0 +1,75 @@
+@namespace MobianWebMonitor.Components
+@inject IJSRuntime JS
+
+<div class="chart-tab">
+    <div class="chart-controls">
+        <select @onchange="OnRangeChanged" class="range-select">
+            <option value="5m" selected="@(_range == "5m")">5 min</option>
+            <option value="15m" selected="@(_range == "15m")">15 min</option>
+            <option value="1h" selected="@(_range == "1h")">1 hour</option>
+            <option value="6h" selected="@(_range == "6h")">6 hours</option>
+            <option value="24h" selected="@(_range == "24h")">24 hours</option>
+        </select>
+    </div>
+    <div class="chart-wrapper">
+        <canvas id="ramChart"></canvas>
+    </div>
+
+    <div class="chart-live-values">
+        <div class="live-value">
+            <span class="live-label">Used</span>
+            <span class="live-number">@Snapshot.Memory.UsedPercent%</span>
+        </div>
+        <div class="live-value">
+            <span class="live-label">Cached</span>
+            <span class="live-number">@Snapshot.Memory.CachedPercent%</span>
+        </div>
+        <div class="live-value">
+            <span class="live-label">Free</span>
+            <span class="live-number">@Snapshot.Memory.FreePercent%</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public MetricsSnapshot Snapshot { get; set; } = new();
+
+    private string _range = "5m";
+    private bool _chartInitialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || !_chartInitialized)
+        {
+            _chartInitialized = true;
+            await LoadChartData();
+        }
+
+        if (_chartInitialized)
+        {
+            await JS.InvokeVoidAsync("chartInterop.addRamPoint",
+                Snapshot.TimestampUtc.ToString("o"),
+                Snapshot.Memory.UsedPercent,
+                Snapshot.Memory.CachedPercent,
+                Snapshot.Memory.FreePercent);
+        }
+    }
+
+    private async Task OnRangeChanged(ChangeEventArgs e)
+    {
+        _range = e.Value?.ToString() ?? "5m";
+        await LoadChartData();
+    }
+
+    private async Task LoadChartData()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("chartInterop.initRamChart", "ramChart", _range);
+        }
+        catch
+        {
+            // Chart.js not loaded yet
+        }
+    }
+}

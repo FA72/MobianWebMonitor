@@ -1,0 +1,125 @@
+@page "/"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+@inject MobianWebMonitor.Metrics.MetricsAggregator Aggregator
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+
+<PageTitle>Mobian Monitor</PageTitle>
+
+<div class="dashboard">
+    <BatteryBlock Battery="@_snapshot.Battery" />
+
+    <div class="stale-bar @(_snapshot.IsStale ? "stale" : "fresh")">
+        @if (_snapshot.IsStale)
+        {
+            <span>Data may be stale</span>
+        }
+        else
+        {
+            <span>Live</span>
+        }
+        <span class="update-time">@_snapshot.TimestampUtc.ToString("HH:mm:ss") UTC</span>
+    </div>
+
+    <div class="tabs">
+        <button class="tab @(_activeTab == "overview" ? "active" : "")" @onclick="@(() => SetTab("overview"))">Overview</button>
+        <button class="tab @(_activeTab == "cpu" ? "active" : "")" @onclick="@(() => SetTab("cpu"))">CPU</button>
+        <button class="tab @(_activeTab == "ram" ? "active" : "")" @onclick="@(() => SetTab("ram"))">RAM</button>
+        <button class="tab @(_activeTab == "docker" ? "active" : "")" @onclick="@(() => SetTab("docker"))">Docker</button>
+    </div>
+
+    <div class="tab-content">
+        @switch (_activeTab)
+        {
+            case "overview":
+                <OverviewTab Snapshot="@_snapshot" />
+                break;
+            case "cpu":
+                <CpuTab Snapshot="@_snapshot" />
+                break;
+            case "ram":
+                <RamTab Snapshot="@_snapshot" />
+                break;
+            case "docker":
+                <DockerTab Containers="@_snapshot.DockerContainers" />
+                break;
+        }
+    </div>
+
+    <div class="logout-bar">
+        <button class="logout-button" @onclick="HandleLogout">Logout</button>
+    </div>
+</div>
+
+@code {
+    private MetricsSnapshot _snapshot = new();
+    private string _activeTab = "overview";
+    private HubConnection? _hubConnection;
+    private System.Timers.Timer? _staleTimer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _snapshot = Aggregator.Current;
+
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(Nav.ToAbsoluteUri("/hubs/metrics"))
+                .WithAutomaticReconnect()
+                .Build();
+
+            _hubConnection.On<MetricsSnapshot>("ReceiveMetrics", snapshot =>
+            {
+                _snapshot = snapshot;
+                ResetStaleTimer();
+                InvokeAsync(StateHasChanged);
+            });
+
+            try
+            {
+                await _hubConnection.StartAsync();
+            }
+            catch
+            {
+                // SignalR connection failed - will show stale state
+            }
+
+            _staleTimer = new System.Timers.Timer(5000);
+            _staleTimer.Elapsed += (_, _) =>
+            {
+                _snapshot.IsStale = true;
+                InvokeAsync(StateHasChanged);
+            };
+            _staleTimer.Start();
+
+            StateHasChanged();
+        }
+    }
+
+    private void ResetStaleTimer()
+    {
+        _staleTimer?.Stop();
+        _staleTimer?.Start();
+    }
+
+    private void SetTab(string tab)
+    {
+        _activeTab = tab;
+    }
+
+    private async Task HandleLogout()
+    {
+        await JS.InvokeVoidAsync("monitorAuth.logout");
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _staleTimer?.Dispose();
+        if (_hubConnection != null)
+            await _hubConnection.DisposeAsync();
+    }
+}

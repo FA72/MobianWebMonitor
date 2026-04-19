@@ -1,0 +1,50 @@
+@namespace MobianWebMonitor.Components
+
+<div class="docker-tab">
+    @if (Containers.Count == 0)
+    {
+        <div class="empty-state">No containers found or Docker is unavailable.</div>
+    }
+    else
+    {
+        @foreach (var container in Containers)
+        {
+            <div class="docker-card">
+                <div class="docker-name">@container.Name</div>
+                <div class="docker-details">
+                    <div class="docker-detail">
+                        <span class="label">Status</span>
+                        <span class="value status-@GetStatusClass(container.Status)">@container.Status</span>
+                    </div>
+                    <div class="docker-detail">
+                        <span class="label">Image</span>
+                        <span class="value">@container.ImageTag</span>
+                    </div>
+                    <div class="docker-detail">
+                        <span class="label">Uptime</span>
+                        <span class="value">@container.Uptime</span>
+                    </div>
+                    <div class="docker-detail">
+                        <span class="label">CPU</span>
+                        <span class="value">@container.CpuUsage</span>
+                    </div>
+                    <div class="docker-detail">
+                        <span class="label">RAM</span>
+                        <span class="value">@container.MemoryUsage</span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<DockerContainerInfo> Containers { get; set; } = [];
+
+    private static string GetStatusClass(string status)
+    {
+        if (status.Contains("Up", StringComparison.OrdinalIgnoreCase)) return "running";
+        if (status.Contains("Exited", StringComparison.OrdinalIgnoreCase)) return "stopped";
+        return "other";
+    }
+}

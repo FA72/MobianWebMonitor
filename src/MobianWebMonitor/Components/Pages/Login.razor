@@ -1,0 +1,72 @@
+@page "/login"
+@layout MainLayout
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
+<PageTitle>Mobian Monitor - Login</PageTitle>
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>Mobian Monitor</h2>
+        <form @onsubmit="HandleLogin">
+            <input type="password" @bind="_password" placeholder="Enter access key"
+                   class="login-input" autocomplete="current-password" disabled="@_loading" />
+            <button type="submit" class="login-button" disabled="@_loading">
+                @if (_loading)
+                {
+                    <span>...</span>
+                }
+                else
+                {
+                    <span>Enter</span>
+                }
+            </button>
+        </form>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="login-error">@_error</div>
+        }
+    </div>
+</div>
+
+@code {
+    private string _password = string.Empty;
+    private string _error = string.Empty;
+    private bool _loading;
+
+    private async Task HandleLogin()
+    {
+        if (_loading) return;
+        _loading = true;
+        _error = string.Empty;
+
+        try
+        {
+            var result = await JS.InvokeAsync<LoginResult>("monitorAuth.login", _password);
+            if (result.Success)
+            {
+                Nav.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _error = result.Message ?? "Access denied.";
+                _password = string.Empty;
+            }
+        }
+        catch
+        {
+            _error = "Connection error. Try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private sealed class LoginResult
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+    }
+}

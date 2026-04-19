@@ -1,0 +1,39 @@
+name: mobian-web-monitor
+
+services:
+  app:
+    container_name: mobian-web-monitor-app
+    image: ${APP_IMAGE:?APP_IMAGE is required}
+    restart: unless-stopped
+    user: "1000:1000"
+    group_add:
+      - "${DOCKER_GID:?DOCKER_GID is required}"
+    environment:
+      ASPNETCORE_URLS: http://+:8082
+      Auth__PasswordHash: ${MONITOR_AUTH_HASH:?required}
+      HostPaths__ProcRoot: /host/proc
+      HostPaths__SysRoot: /host/sys
+    volumes:
+      - ./volumes/history:/data/history
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys/class/power_supply:/host/sys/class/power_supply:ro
+      - /sys/class/thermal:/host/sys/class/thermal:ro
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
+    healthcheck:
+      test: ["CMD", "dotnet", "MobianWebMonitor.dll", "--healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true
