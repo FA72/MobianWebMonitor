@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve"><value>Mobian Monitor</value></data>
+  <data name="LoginPageTitle" xml:space="preserve"><value>Mobian Monitor - Login</value></data>
+  <data name="EnterAccessKey" xml:space="preserve"><value>Enter access key</value></data>
+  <data name="EnterButton" xml:space="preserve"><value>Enter</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Access denied.</value></data>
+  <data name="ConnectionErrorTryAgain" xml:space="preserve"><value>Connection error. Try again.</value></data>
+  <data name="TooManyAttemptsTryAgainLater" xml:space="preserve"><value>Too many attempts. Try again later.</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>Error</value></data>
+  <data name="ErrorProcessingRequest" xml:space="preserve"><value>An error occurred while processing your request.</value></data>
+  <data name="RequestId" xml:space="preserve"><value>Request ID</value></data>
+  <data name="PageNotFound" xml:space="preserve"><value>Page not found.</value></data>
+  <data name="RejoiningServer" xml:space="preserve"><value>Rejoining the server...</value></data>
+  <data name="RejoinFailedRetryIn" xml:space="preserve"><value>Rejoin failed... trying again in</value></data>
+  <data name="Seconds" xml:space="preserve"><value>seconds</value></data>
+  <data name="FailedToRejoinReload" xml:space="preserve"><value>Failed to rejoin. Please retry or reload the page.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="SessionPausedByServer" xml:space="preserve"><value>The session has been paused by the server.</value></data>
+  <data name="FailedToResumeReload" xml:space="preserve"><value>Failed to resume the session. Please retry or reload the page.</value></data>
+  <data name="Resume" xml:space="preserve"><value>Resume</value></data>
+  <data name="DataMayBeStale" xml:space="preserve"><value>Data may be stale</value></data>
+  <data name="Live" xml:space="preserve"><value>Live</value></data>
+  <data name="Overview" xml:space="preserve"><value>Overview</value></data>
+  <data name="CPU" xml:space="preserve"><value>CPU</value></data>
+  <data name="RAM" xml:space="preserve"><value>RAM</value></data>
+  <data name="Docker" xml:space="preserve"><value>Docker</value></data>
+  <data name="Logout" xml:space="preserve"><value>Logout</value></data>
+  <data name="Temperature" xml:space="preserve"><value>Temp</value></data>
+  <data name="Current" xml:space="preserve"><value>Current</value></data>
+  <data name="Voltage" xml:space="preserve"><value>Voltage</value></data>
+  <data name="Health" xml:space="preserve"><value>Health</value></data>
+  <data name="Limiter" xml:space="preserve"><value>Limiter</value></data>
+  <data name="NotAvailable" xml:space="preserve"><value>N/A</value></data>
+  <data name="Memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="Disk" xml:space="preserve"><value>Disk</value></data>
+  <data name="Service" xml:space="preserve"><value>Service</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="CoreWithIndex" xml:space="preserve"><value>Core {0}</value></data>
+  <data name="Used" xml:space="preserve"><value>Used</value></data>
+  <data name="Cached" xml:space="preserve"><value>Cached</value></data>
+  <data name="Free" xml:space="preserve"><value>Free</value></data>
+  <data name="Swap" xml:space="preserve"><value>Swap</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Image" xml:space="preserve"><value>Image</value></data>
+  <data name="Uptime" xml:space="preserve"><value>Uptime</value></data>
+  <data name="NoContainersFound" xml:space="preserve"><value>No containers found or Docker is unavailable.</value></data>
+  <data name="FiveMinutes" xml:space="preserve"><value>5 min</value></data>
+  <data name="FifteenMinutes" xml:space="preserve"><value>15 min</value></data>
+  <data name="OneHour" xml:space="preserve"><value>1 hour</value></data>
+  <data name="SixHours" xml:space="preserve"><value>6 hours</value></data>
+  <data name="TwentyFourHours" xml:space="preserve"><value>24 hours</value></data>
+  <data name="Charging" xml:space="preserve"><value>Charging</value></data>
+  <data name="Discharging" xml:space="preserve"><value>Discharging</value></data>
+  <data name="Full" xml:space="preserve"><value>Full</value></data>
+  <data name="NotCharging" xml:space="preserve"><value>Not charging</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Good" xml:space="preserve"><value>Good</value></data>
+  <data name="Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Running" xml:space="preserve"><value>Running</value></data>
+  <data name="Stopped" xml:space="preserve"><value>Stopped</value></data>
+  <data name="Paused" xml:space="preserve"><value>Paused</value></data>
+  <data name="Restarting" xml:space="preserve"><value>Restarting</value></data>
+  <data name="Created" xml:space="preserve"><value>Created</value></data>
+  <data name="Dead" xml:space="preserve"><value>Dead</value></data>
+  <data name="Removing" xml:space="preserve"><value>Removing</value></data>
+  <data name="Exited" xml:space="preserve"><value>Exited</value></data>
+  <data name="Starting" xml:space="preserve"><value>Starting</value></data>
+  <data name="DayShort" xml:space="preserve"><value>d</value></data>
+</root>

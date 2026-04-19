@@ -4,11 +4,11 @@
 <div class="chart-tab">
     <div class="chart-controls">
         <select @onchange="OnRangeChanged" class="range-select">
-            <option value="5m" selected="@(_range == "5m")">5 min</option>
-            <option value="15m" selected="@(_range == "15m")">15 min</option>
-            <option value="1h" selected="@(_range == "1h")">1 hour</option>
-            <option value="6h" selected="@(_range == "6h")">6 hours</option>
-            <option value="24h" selected="@(_range == "24h")">24 hours</option>
+            <option value="5m" selected="@(_range == "5m")">@L["FiveMinutes"]</option>
+            <option value="15m" selected="@(_range == "15m")">@L["FifteenMinutes"]</option>
+            <option value="1h" selected="@(_range == "1h")">@L["OneHour"]</option>
+            <option value="6h" selected="@(_range == "6h")">@L["SixHours"]</option>
+            <option value="24h" selected="@(_range == "24h")">@L["TwentyFourHours"]</option>
         </select>
     </div>
     <div class="chart-wrapper">
@@ -17,14 +17,14 @@
 
     <div class="chart-live-values">
         <div class="live-value">
-            <span class="live-label">Total</span>
+            <span class="live-label">@L["Total"]</span>
             <span class="live-number">@Snapshot.Cpu.TotalUsagePercent.ToString("F1")%</span>
         </div>
         @for (int i = 0; i < Snapshot.Cpu.CoreUsagePercents.Count; i++)
         {
             var idx = i;
             <div class="live-value">
-                <span class="live-label">Core @idx</span>
+                <span class="live-label">@L["CoreWithIndex", idx]</span>
                 <span class="live-number">@Snapshot.Cpu.CoreUsagePercents[idx].ToString("F1")%</span>
             </div>
         }
@@ -64,8 +64,14 @@
     {
         try
         {
+            var coreLabels = Enumerable.Range(0, Snapshot.Cpu.CoreUsagePercents.Count)
+                .Select(i => L["CoreWithIndex", i].Value)
+                .ToArray();
+
             await JS.InvokeVoidAsync("chartInterop.initCpuChart", "cpuChart", _range,
-                Snapshot.Cpu.CoreUsagePercents.Count);
+                Snapshot.Cpu.CoreUsagePercents.Count,
+                L["Total"].Value,
+                coreLabels);
         }
         catch
         {

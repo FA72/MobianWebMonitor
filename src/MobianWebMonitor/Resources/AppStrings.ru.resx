@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve"><value>Mobian Monitor</value></data>
+  <data name="LoginPageTitle" xml:space="preserve"><value>Mobian Monitor - Вход</value></data>
+  <data name="EnterAccessKey" xml:space="preserve"><value>Введите ключ доступа</value></data>
+  <data name="EnterButton" xml:space="preserve"><value>Войти</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Доступ запрещен.</value></data>
+  <data name="ConnectionErrorTryAgain" xml:space="preserve"><value>Ошибка соединения. Повторите попытку.</value></data>
+  <data name="TooManyAttemptsTryAgainLater" xml:space="preserve"><value>Слишком много попыток. Повторите позже.</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>Ошибка</value></data>
+  <data name="ErrorProcessingRequest" xml:space="preserve"><value>Во время обработки запроса произошла ошибка.</value></data>
+  <data name="RequestId" xml:space="preserve"><value>ID запроса</value></data>
+  <data name="PageNotFound" xml:space="preserve"><value>Страница не найдена.</value></data>
+  <data name="RejoiningServer" xml:space="preserve"><value>Повторное подключение к серверу...</value></data>
+  <data name="RejoinFailedRetryIn" xml:space="preserve"><value>Повторное подключение не удалось... новая попытка через</value></data>
+  <data name="Seconds" xml:space="preserve"><value>сек.</value></data>
+  <data name="FailedToRejoinReload" xml:space="preserve"><value>Не удалось переподключиться. Повторите попытку или перезагрузите страницу.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Повторить</value></data>
+  <data name="SessionPausedByServer" xml:space="preserve"><value>Сессия была приостановлена сервером.</value></data>
+  <data name="FailedToResumeReload" xml:space="preserve"><value>Не удалось возобновить сессию. Повторите попытку или перезагрузите страницу.</value></data>
+  <data name="Resume" xml:space="preserve"><value>Возобновить</value></data>
+  <data name="DataMayBeStale" xml:space="preserve"><value>Данные могут быть устаревшими</value></data>
+  <data name="Live" xml:space="preserve"><value>Live</value></data>
+  <data name="Overview" xml:space="preserve"><value>Обзор</value></data>
+  <data name="CPU" xml:space="preserve"><value>CPU</value></data>
+  <data name="RAM" xml:space="preserve"><value>RAM</value></data>
+  <data name="Docker" xml:space="preserve"><value>Docker</value></data>
+  <data name="Logout" xml:space="preserve"><value>Выйти</value></data>
+  <data name="Temperature" xml:space="preserve"><value>Темп.</value></data>
+  <data name="Current" xml:space="preserve"><value>Ток</value></data>
+  <data name="Voltage" xml:space="preserve"><value>Напряжение</value></data>
+  <data name="Health" xml:space="preserve"><value>Состояние</value></data>
+  <data name="Limiter" xml:space="preserve"><value>Лимитер</value></data>
+  <data name="NotAvailable" xml:space="preserve"><value>Н/Д</value></data>
+  <data name="Memory" xml:space="preserve"><value>Память</value></data>
+  <data name="Disk" xml:space="preserve"><value>Диск</value></data>
+  <data name="Service" xml:space="preserve"><value>Сервис</value></data>
+  <data name="Total" xml:space="preserve"><value>Всего</value></data>
+  <data name="CoreWithIndex" xml:space="preserve"><value>Ядро {0}</value></data>
+  <data name="Used" xml:space="preserve"><value>Исп.</value></data>
+  <data name="Cached" xml:space="preserve"><value>Кэш</value></data>
+  <data name="Free" xml:space="preserve"><value>Свободно</value></data>
+  <data name="Swap" xml:space="preserve"><value>Swap</value></data>
+  <data name="Status" xml:space="preserve"><value>Статус</value></data>
+  <data name="Image" xml:space="preserve"><value>Образ</value></data>
+  <data name="Uptime" xml:space="preserve"><value>Время работы</value></data>
+  <data name="NoContainersFound" xml:space="preserve"><value>Контейнеры не найдены или Docker недоступен.</value></data>
+  <data name="FiveMinutes" xml:space="preserve"><value>5 мин</value></data>
+  <data name="FifteenMinutes" xml:space="preserve"><value>15 мин</value></data>
+  <data name="OneHour" xml:space="preserve"><value>1 час</value></data>
+  <data name="SixHours" xml:space="preserve"><value>6 часов</value></data>
+  <data name="TwentyFourHours" xml:space="preserve"><value>24 часа</value></data>
+  <data name="Charging" xml:space="preserve"><value>Заряжается</value></data>
+  <data name="Discharging" xml:space="preserve"><value>Разряжается</value></data>
+  <data name="Full" xml:space="preserve"><value>Полностью заряжен</value></data>
+  <data name="NotCharging" xml:space="preserve"><value>Не заряжается</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Неизвестно</value></data>
+  <data name="Good" xml:space="preserve"><value>Исправно</value></data>
+  <data name="Active" xml:space="preserve"><value>Активен</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Неактивен</value></data>
+  <data name="Failed" xml:space="preserve"><value>Ошибка</value></data>
+  <data name="Running" xml:space="preserve"><value>Работает</value></data>
+  <data name="Stopped" xml:space="preserve"><value>Остановлен</value></data>
+  <data name="Paused" xml:space="preserve"><value>Приостановлен</value></data>
+  <data name="Restarting" xml:space="preserve"><value>Перезапускается</value></data>
+  <data name="Created" xml:space="preserve"><value>Создан</value></data>
+  <data name="Dead" xml:space="preserve"><value>Не отвечает</value></data>
+  <data name="Removing" xml:space="preserve"><value>Удаляется</value></data>
+  <data name="Exited" xml:space="preserve"><value>Завершен</value></data>
+  <data name="Starting" xml:space="preserve"><value>Запускается</value></data>
+  <data name="DayShort" xml:space="preserve"><value>д</value></data>
+</root>

@@ -31,14 +31,14 @@ window.chartInterop = (() => {
     }
 
     return {
-        initCpuChart: async function (canvasId, range, coreCount) {
+        initCpuChart: async function (canvasId, range, coreCount, totalLabel, coreLabels) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
 
             if (cpuChart) { cpuChart.destroy(); cpuChart = null; }
 
             const datasets = [{
-                label: 'Total',
+                label: totalLabel,
                 data: [],
                 borderColor: '#fff',
                 borderWidth: 2,
@@ -49,7 +49,7 @@ window.chartInterop = (() => {
 
             for (let i = 0; i < coreCount; i++) {
                 datasets.push({
-                    label: `Core ${i}`,
+                    label: coreLabels[i] ?? `${totalLabel} ${i}`,
                     data: [],
                     borderColor: coreColors[i % coreColors.length],
                     borderWidth: 1,
@@ -119,7 +119,7 @@ window.chartInterop = (() => {
             cpuChart.update('none');
         },
 
-        initRamChart: async function (canvasId, range) {
+        initRamChart: async function (canvasId, range, usedLabel, cachedLabel, freeLabel) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
 
@@ -131,7 +131,7 @@ window.chartInterop = (() => {
                     labels: [],
                     datasets: [
                         {
-                            label: 'Used',
+                            label: usedLabel,
                             data: [],
                             backgroundColor: 'rgba(79, 195, 247, 0.3)',
                             borderColor: '#4fc3f7',
@@ -141,7 +141,7 @@ window.chartInterop = (() => {
                             fill: true
                         },
                         {
-                            label: 'Cached',
+                            label: cachedLabel,
                             data: [],
                             backgroundColor: 'rgba(129, 199, 132, 0.3)',
                             borderColor: '#81c784',
@@ -151,7 +151,7 @@ window.chartInterop = (() => {
                             fill: true
                         },
                         {
-                            label: 'Free',
+                            label: freeLabel,
                             data: [],
                             backgroundColor: 'rgba(255, 255, 255, 0.05)',
                             borderColor: '#555',
@@ -216,6 +216,13 @@ window.chartInterop = (() => {
 
 // Auth interop
 window.monitorAuth = {
+    _texts: {
+        accessDenied: 'Access denied.',
+        connectionError: 'Connection error. Try again.'
+    },
+    setTranslations: function (texts) {
+        this._texts = { ...this._texts, ...texts };
+    },
     login: async function (password) {
         try {
             const form = new URLSearchParams();
@@ -229,14 +236,14 @@ window.monitorAuth = {
                 return { success: true, message: null };
             }
             const text = await res.text();
-            let msg = 'Access denied.';
+            let msg = this._texts.accessDenied;
             try {
                 const j = JSON.parse(text);
                 msg = j.message || msg;
             } catch { msg = text || msg; }
             return { success: false, message: msg };
         } catch (e) {
-            return { success: false, message: 'Connection error.' };
+            return { success: false, message: this._texts.connectionError };
         }
     },
     logout: async function () {

@@ -29,15 +29,20 @@ public sealed class DockerCollector : IDisposable
 
             foreach (var c in containers)
             {
+                var details = await client.Containers.InspectContainerAsync(c.ID, ct);
+                var startedAtUtc = ParseDockerTimestamp(details.State?.StartedAt);
+
                 var info = new DockerContainerInfo
                 {
                     Name = c.Names.FirstOrDefault()?.TrimStart('/') ?? "unknown",
                     Status = c.Status ?? "N/A",
+                    State = details.State?.Status ?? c.State ?? "unknown",
                     ImageTag = c.Image ?? "N/A",
-                    Uptime = FormatUptime(c.Created, c.State)
+                    Uptime = FormatUptime(startedAtUtc, details.State?.Status ?? c.State),
+                    StartedAtUtc = startedAtUtc
                 };
 
-                if (string.Equals(c.State, "running", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(info.State, "running", StringComparison.OrdinalIgnoreCase))
                 {
                     try
                     {
@@ -132,12 +137,25 @@ public sealed class DockerCollector : IDisposable
         return FormatBytes((long)actual);
     }
 
-    private static string FormatUptime(DateTime created, string? state)
+    private static DateTime? ParseDockerTimestamp(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return DateTimeOffset.TryParse(value, out var parsed)
+            ? parsed.UtcDateTime
+            : null;
+    }
+
+    private static string FormatUptime(DateTime? startedAtUtc, string? state)
     {
         if (!string.Equals(state, "running", StringComparison.OrdinalIgnoreCase))
             return state ?? "N/A";
 
-        var elapsed = DateTime.UtcNow - created;
+        if (!startedAtUtc.HasValue)
+            return "N/A";
+
+        var elapsed = DateTime.UtcNow - startedAtUtc.Value;
         if (elapsed.TotalDays >= 1) return $"{elapsed.Days}d {elapsed.Hours}h";
         if (elapsed.TotalHours >= 1) return $"{elapsed.Hours}h {elapsed.Minutes}m";
         return $"{elapsed.Minutes}m";

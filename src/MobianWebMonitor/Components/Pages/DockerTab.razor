@@ -3,7 +3,7 @@
 <div class="docker-tab">
     @if (Containers.Count == 0)
     {
-        <div class="empty-state">No containers found or Docker is unavailable.</div>
+        <div class="empty-state">@L["NoContainersFound"]</div>
     }
     else
     {
@@ -13,23 +13,23 @@
                 <div class="docker-name">@container.Name</div>
                 <div class="docker-details">
                     <div class="docker-detail">
-                        <span class="label">Status</span>
-                        <span class="value status-@GetStatusClass(container.Status)">@container.Status</span>
+                        <span class="label">@L["Status"]</span>
+                        <span class="value status-@GetStatusClass(container.State)">@FormatState(container.State)</span>
                     </div>
                     <div class="docker-detail">
-                        <span class="label">Image</span>
+                        <span class="label">@L["Image"]</span>
                         <span class="value">@container.ImageTag</span>
                     </div>
                     <div class="docker-detail">
-                        <span class="label">Uptime</span>
-                        <span class="value">@container.Uptime</span>
+                        <span class="label">@L["Uptime"]</span>
+                        <span class="value">@FormatUptime(container)</span>
                     </div>
                     <div class="docker-detail">
-                        <span class="label">CPU</span>
+                        <span class="label">@L["CPU"]</span>
                         <span class="value">@container.CpuUsage</span>
                     </div>
                     <div class="docker-detail">
-                        <span class="label">RAM</span>
+                        <span class="label">@L["RAM"]</span>
                         <span class="value">@container.MemoryUsage</span>
                     </div>
                 </div>
@@ -41,10 +41,40 @@
 @code {
     [Parameter] public List<DockerContainerInfo> Containers { get; set; } = [];
 
-    private static string GetStatusClass(string status)
+    private static string GetStatusClass(string? state)
     {
-        if (status.Contains("Up", StringComparison.OrdinalIgnoreCase)) return "running";
-        if (status.Contains("Exited", StringComparison.OrdinalIgnoreCase)) return "stopped";
+        if (string.Equals(state, "running", StringComparison.OrdinalIgnoreCase)) return "running";
+        if (string.Equals(state, "exited", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(state, "dead", StringComparison.OrdinalIgnoreCase)) return "stopped";
         return "other";
+    }
+
+    private string FormatState(string? value) =>
+        value?.ToLowerInvariant() switch
+        {
+            "running" => L["Running"],
+            "exited" => L["Exited"],
+            "paused" => L["Paused"],
+            "restarting" => L["Restarting"],
+            "created" => L["Created"],
+            "removing" => L["Removing"],
+            "dead" => L["Dead"],
+            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
+            _ => value
+        };
+
+    private string FormatUptime(DockerContainerInfo container)
+    {
+        if (!string.Equals(container.State, "running", StringComparison.OrdinalIgnoreCase) || !container.StartedAtUtc.HasValue)
+            return L["NotAvailable"].Value;
+
+        var elapsed = DateTime.UtcNow - container.StartedAtUtc.Value;
+        if (elapsed < TimeSpan.Zero)
+            elapsed = TimeSpan.Zero;
+
+        if (elapsed.TotalDays >= 1)
+            return $"{elapsed.Days}{L["DayShort"]} {elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+
+        return $"{(int)elapsed.TotalHours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
     }
 }

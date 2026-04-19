@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Localization;
+using MobianWebMonitor.Resources;
 
 namespace MobianWebMonitor.Auth;
 
@@ -8,12 +10,12 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/auth/login", async (HttpContext ctx, PasswordService passwordService, RateLimitStore rateLimiter) =>
+        app.MapPost("/auth/login", async (HttpContext ctx, PasswordService passwordService, RateLimitStore rateLimiter, IStringLocalizer<AppStrings> L) =>
         {
             var clientIp = ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
             if (rateLimiter.IsBlocked(clientIp))
-                return Results.Json(new { success = false, message = "Too many attempts. Try again later." },
+                return Results.Json(new { success = false, message = L["TooManyAttemptsTryAgainLater"].Value },
                     statusCode: 429);
 
             var delay = rateLimiter.GetDelay(clientIp);
@@ -26,7 +28,7 @@ public static class AuthEndpoints
             if (string.IsNullOrEmpty(password) || !passwordService.Verify(password))
             {
                 rateLimiter.RecordFailure(clientIp);
-                return Results.Json(new { success = false, message = "Access denied." },
+                return Results.Json(new { success = false, message = L["AccessDenied"].Value },
                     statusCode: 401);
             }
 

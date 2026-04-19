@@ -13,8 +13,8 @@
                 <rect x="3" y="3" width="@(22 * pct / 100)" height="12" rx="1" fill="@color"/>
             </svg>
         </div>
-        <span class="battery-percent" style="color: @color">@(Battery.CapacityPercent?.ToString() ?? "N/A")%</span>
-        <span class="battery-status">@(Battery.Status ?? "N/A")</span>
+        <span class="battery-percent" style="color: @color">@FormatCapacity(Battery.CapacityPercent)</span>
+        <span class="battery-status">@FormatBatteryStatus()</span>
         @if (Battery.ExternalPowered == true)
         {
             <span class="battery-plugged">⚡</span>
@@ -22,25 +22,25 @@
     </div>
     <div class="battery-details">
         <div class="battery-detail">
-            <span class="label">Temp</span>
-            <span class="value">@(Battery.TemperatureCelsius?.ToString("F1") ?? "N/A")°C</span>
+            <span class="label">@L["Temperature"]</span>
+            <span class="value">@FormatTemperature(Battery.TemperatureCelsius)</span>
         </div>
         <div class="battery-detail">
-            <span class="label">Current</span>
+            <span class="label">@L["Current"]</span>
             <span class="value">@FormatCurrent(Battery.CurrentMicroAmps)</span>
         </div>
         <div class="battery-detail">
-            <span class="label">Voltage</span>
+            <span class="label">@L["Voltage"]</span>
             <span class="value">@FormatVoltage(Battery.VoltageMicroVolts)</span>
         </div>
         <div class="battery-detail">
-            <span class="label">Health</span>
-            <span class="value">@(Battery.Health ?? "N/A")</span>
+            <span class="label">@L["Health"]</span>
+            <span class="value">@FormatHealth(Battery.Health)</span>
         </div>
         <div class="battery-detail">
-            <span class="label">Limiter</span>
+            <span class="label">@L["Limiter"]</span>
             <span class="value limiter-@(Battery.BatteryLimiterStatus?.ToLowerInvariant() ?? "na")">
-                @(Battery.BatteryLimiterStatus ?? "N/A")
+                @FormatServiceState(Battery.BatteryLimiterStatus)
             </span>
         </div>
     </div>
@@ -49,9 +49,51 @@
 @code {
     [Parameter] public BatteryInfo Battery { get; set; } = new();
 
+    private string FormatCapacity(int? capacityPercent) =>
+        capacityPercent.HasValue ? $"{capacityPercent.Value}%" : L["NotAvailable"].Value;
+
+    private string FormatTemperature(double? celsius) =>
+        celsius.HasValue ? $"{celsius.Value:F1}°C" : L["NotAvailable"].Value;
+
     private string FormatCurrent(int? microAmps) =>
-        microAmps.HasValue ? $"{microAmps.Value / 1000.0:F0} mA" : "N/A";
+        microAmps.HasValue ? $"{microAmps.Value / 1000.0:F0} mA" : L["NotAvailable"].Value;
 
     private string FormatVoltage(int? microVolts) =>
-        microVolts.HasValue ? $"{microVolts.Value / 1_000_000.0:F2} V" : "N/A";
+        microVolts.HasValue ? $"{microVolts.Value / 1_000_000.0:F2} V" : L["NotAvailable"].Value;
+
+    private string FormatBatteryStatus()
+    {
+        var value = Battery.Status ?? Battery.ChargeStatus;
+        return value?.ToLowerInvariant() switch
+        {
+            "charging" => L["Charging"],
+            "discharging" => L["Discharging"],
+            "full" => L["Full"],
+            "not charging" => L["NotCharging"],
+            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
+            _ => value
+        };
+    }
+
+    private string FormatHealth(string? value) =>
+        value?.ToLowerInvariant() switch
+        {
+            "good" => L["Good"],
+            "unknown" => L["Unknown"],
+            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
+            _ => value
+        };
+
+    private string FormatServiceState(string? value) =>
+        value?.ToLowerInvariant() switch
+        {
+            "active" => L["Active"],
+            "inactive" => L["Inactive"],
+            "failed" => L["Failed"],
+            "running" => L["Running"],
+            "dead" => L["Dead"],
+            "starting" => L["Starting"],
+            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
+            _ => value
+        };
 }

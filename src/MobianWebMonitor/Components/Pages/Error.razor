@@ -1,16 +1,16 @@
 ﻿@page "/Error"
 @using System.Diagnostics
 
-<PageTitle>Error — Mobian Monitor</PageTitle>
+<PageTitle>@L["ErrorTitle"] - @L["AppName"]</PageTitle>
 
 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;color:var(--text-primary);padding:2rem;">
-    <h1 style="color:var(--accent);font-size:2rem;margin-bottom:0.5rem;">Error</h1>
-    <p style="color:var(--text-secondary);margin-bottom:1.5rem;">An error occurred while processing your request.</p>
+    <h1 style="color:var(--accent);font-size:2rem;margin-bottom:0.5rem;">@L["ErrorTitle"]</h1>
+    <p style="color:var(--text-secondary);margin-bottom:1.5rem;">@L["ErrorProcessingRequest"]</p>
 
     @if (ShowRequestId)
     {
         <p style="font-size:0.85rem;color:var(--text-muted);">
-            Request ID: <code style="color:var(--text-secondary);">@RequestId</code>
+            @L["RequestId"]: <code style="color:var(--text-secondary);">@RequestId</code>
         </p>
     }
 </div>

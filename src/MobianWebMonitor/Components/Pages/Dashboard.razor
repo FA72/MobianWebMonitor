@@ -4,31 +4,30 @@
 @inject MobianWebMonitor.Metrics.MetricsAggregator Aggregator
 @inject NavigationManager Nav
 @inject IJSRuntime JS
-@using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 
-<PageTitle>Mobian Monitor</PageTitle>
+<PageTitle>@L["AppName"]</PageTitle>
 
 <div class="dashboard">
     <BatteryBlock Battery="@_snapshot.Battery" />
 
-    <div class="stale-bar @(_snapshot.IsStale ? "stale" : "fresh")">
-        @if (_snapshot.IsStale)
+    <div class="stale-bar @(_isStale ? "stale" : "fresh")">
+        @if (_isStale)
         {
-            <span>Data may be stale</span>
+            <span>@L["DataMayBeStale"]</span>
         }
         else
         {
-            <span>Live</span>
+            <span>@L["Live"]</span>
         }
         <span class="update-time">@_snapshot.TimestampUtc.ToString("HH:mm:ss") UTC</span>
     </div>
 
     <div class="tabs">
-        <button class="tab @(_activeTab == "overview" ? "active" : "")" @onclick="@(() => SetTab("overview"))">Overview</button>
-        <button class="tab @(_activeTab == "cpu" ? "active" : "")" @onclick="@(() => SetTab("cpu"))">CPU</button>
-        <button class="tab @(_activeTab == "ram" ? "active" : "")" @onclick="@(() => SetTab("ram"))">RAM</button>
-        <button class="tab @(_activeTab == "docker" ? "active" : "")" @onclick="@(() => SetTab("docker"))">Docker</button>
+        <button class="tab @(_activeTab == "overview" ? "active" : "")" @onclick="@(() => SetTab("overview"))">@L["Overview"]</button>
+        <button class="tab @(_activeTab == "cpu" ? "active" : "")" @onclick="@(() => SetTab("cpu"))">@L["CPU"]</button>
+        <button class="tab @(_activeTab == "ram" ? "active" : "")" @onclick="@(() => SetTab("ram"))">@L["RAM"]</button>
+        <button class="tab @(_activeTab == "docker" ? "active" : "")" @onclick="@(() => SetTab("docker"))">@L["Docker"]</button>
     </div>
 
     <div class="tab-content">
@@ -50,59 +49,49 @@
     </div>
 
     <div class="logout-bar">
-        <button class="logout-button" @onclick="HandleLogout">Logout</button>
+        <button class="logout-button" @onclick="HandleLogout">@L["Logout"]</button>
     </div>
 </div>
 
 @code {
     private MetricsSnapshot _snapshot = new();
     private string _activeTab = "overview";
-    private HubConnection? _hubConnection;
-    private System.Timers.Timer? _staleTimer;
+    private CancellationTokenSource? _refreshLoopCts;
+    private bool _isStale;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _snapshot = Aggregator.Current;
-
-            _hubConnection = new HubConnectionBuilder()
-                .WithUrl(Nav.ToAbsoluteUri("/hubs/metrics"))
-                .WithAutomaticReconnect()
-                .Build();
-
-            _hubConnection.On<MetricsSnapshot>("ReceiveMetrics", snapshot =>
-            {
-                _snapshot = snapshot;
-                ResetStaleTimer();
-                InvokeAsync(StateHasChanged);
-            });
-
-            try
-            {
-                await _hubConnection.StartAsync();
-            }
-            catch
-            {
-                // SignalR connection failed - will show stale state
-            }
-
-            _staleTimer = new System.Timers.Timer(5000);
-            _staleTimer.Elapsed += (_, _) =>
-            {
-                _snapshot.IsStale = true;
-                InvokeAsync(StateHasChanged);
-            };
-            _staleTimer.Start();
-
-            StateHasChanged();
+            RefreshSnapshot();
+            _refreshLoopCts = new CancellationTokenSource();
+            _ = RefreshLoopAsync(_refreshLoopCts.Token);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    private void ResetStaleTimer()
+    private async Task RefreshLoopAsync(CancellationToken cancellationToken)
     {
-        _staleTimer?.Stop();
-        _staleTimer?.Start();
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                RefreshSnapshot();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void RefreshSnapshot()
+    {
+        _snapshot = Aggregator.Current;
+        _isStale = _snapshot.LastFastUpdate == default ||
+                   DateTime.UtcNow - _snapshot.LastFastUpdate > TimeSpan.FromSeconds(5);
     }
 
     private void SetTab(string tab)
@@ -118,8 +107,10 @@
 
     public async ValueTask DisposeAsync()
     {
-        _staleTimer?.Dispose();
-        if (_hubConnection != null)
-            await _hubConnection.DisposeAsync();
+        if (_refreshLoopCts != null)
+        {
+            await _refreshLoopCts.CancelAsync();
+            _refreshLoopCts.Dispose();
+        }
     }
 }

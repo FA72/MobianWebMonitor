@@ -4,13 +4,13 @@
 @inject IJSRuntime JS
 @rendermode InteractiveServer
 
-<PageTitle>Mobian Monitor - Login</PageTitle>
+<PageTitle>@L["LoginPageTitle"]</PageTitle>
 
 <div class="login-container">
     <div class="login-card">
-        <h2>Mobian Monitor</h2>
+        <h2>@L["AppName"]</h2>
         <form @onsubmit="HandleLogin">
-            <input type="password" @bind="_password" placeholder="Enter access key"
+            <input type="password" @bind="_password" placeholder="@L["EnterAccessKey"]"
                    class="login-input" autocomplete="current-password" disabled="@_loading" />
             <button type="submit" class="login-button" disabled="@_loading">
                 @if (_loading)
@@ -19,7 +19,7 @@
                 }
                 else
                 {
-                    <span>Enter</span>
+                    <span>@L["EnterButton"]</span>
                 }
             </button>
         </form>
@@ -34,6 +34,18 @@
     private string _password = string.Empty;
     private string _error = string.Empty;
     private bool _loading;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("monitorAuth.setTranslations", new
+            {
+                accessDenied = L["AccessDenied"].Value,
+                connectionError = L["ConnectionErrorTryAgain"].Value
+            });
+        }
+    }
 
     private async Task HandleLogin()
     {
@@ -50,13 +62,13 @@
             }
             else
             {
-                _error = result.Message ?? "Access denied.";
+                _error = result.Message ?? L["AccessDenied"].Value;
                 _password = string.Empty;
             }
         }
         catch
         {
-            _error = "Connection error. Try again.";
+            _error = L["ConnectionErrorTryAgain"].Value;
         }
         finally
         {

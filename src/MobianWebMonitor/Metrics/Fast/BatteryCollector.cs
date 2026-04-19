@@ -54,9 +54,11 @@ public sealed class BatteryCollector
                 if (Directory.Exists(chargerDir))
                 {
                     info.ChargeStatus = ReadStringFile(chargerDir, "status");
+                    info.Status ??= info.ChargeStatus;
                     info.ExternalPowered = ReadStringFile(chargerDir, "online") == "1";
                     info.ChargerType = ReadStringFile(chargerDir, "type");
                     info.CurrentMaxMicroAmps = ReadIntFile(chargerDir, "current_max");
+                    info.Health ??= ReadStringFile(chargerDir, "health");
                 }
             }
 
