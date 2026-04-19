@@ -22,7 +22,7 @@ public sealed class SystemdServiceCollector
             var psi = new ProcessStartInfo
             {
                 FileName = "systemctl",
-                Arguments = $"show {unitName} --property=ActiveState,SubState,ExecMainStartTimestamp --no-pager",
+                Arguments = $"--system show {unitName} --property=ActiveState,SubState,ExecMainStartTimestamp --no-pager",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

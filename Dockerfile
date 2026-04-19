@@ -13,6 +13,10 @@ RUN install -D /app/wwwroot/_framework/blazor.server.js /app/wwwroot/js/blazor.s
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS runtime
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends systemd \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /data/history && chown -R 1000:1000 /data
 
 COPY --from=build /app .

@@ -13,12 +13,12 @@ services:
       Auth__PasswordHash: ${MONITOR_AUTH_HASH:?required}
       HostPaths__ProcRoot: /host/proc
       HostPaths__SysRoot: /host/sys
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
     volumes:
       - ./volumes/history:/data/history
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc:/host/proc:ro
-      - /sys/class/power_supply:/host/sys/class/power_supply:ro
-      - /sys/class/thermal:/host/sys/class/thermal:ro
+      - /sys:/host/sys:ro
       - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
     healthcheck:
       test: ["CMD", "dotnet", "MobianWebMonitor.dll", "--healthcheck"]
