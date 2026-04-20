@@ -9,67 +9,49 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mobian-monitor-phone-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - Linux
+      - ARM64
+      - mobian-monitor-phone
 
     steps:
-      - name: Check deploy secrets
-        id: preflight
-        env:
-          PHONE_SSH_HOST: ${{ secrets.PHONE_SSH_HOST }}
-          PHONE_SSH_USER: ${{ secrets.PHONE_SSH_USER }}
-          PHONE_SSH_PRIVATE_KEY: ${{ secrets.PHONE_SSH_PRIVATE_KEY }}
-        run: |
-          if [[ -n "$PHONE_SSH_HOST" && -n "$PHONE_SSH_USER" && -n "$PHONE_SSH_PRIVATE_KEY" ]]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "Phone deploy secrets are not configured. Skipping deploy job."
-          fi
-
       - name: Checkout
-        if: steps.preflight.outputs.configured == 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
 
-      - name: Start SSH agent
-        if: steps.preflight.outputs.configured == 'true'
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.PHONE_SSH_PRIVATE_KEY }}
-
-      - name: Trust SSH host
-        if: steps.preflight.outputs.configured == 'true'
+      - name: Sync deploy bundle into live directory
+        shell: bash
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p "${{ secrets.PHONE_SSH_PORT || '22' }}" "${{ secrets.PHONE_SSH_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Archive deploy bundle
-        if: steps.preflight.outputs.configured == 'true'
-        run: tar -czf deploy-phone.tgz deploy/phone
-
-      - name: Upload deploy bundle
-        if: steps.preflight.outputs.configured == 'true'
-        run: |
-          scp -P "${{ secrets.PHONE_SSH_PORT || '22' }}" deploy-phone.tgz \
-            "${{ secrets.PHONE_SSH_USER }}@${{ secrets.PHONE_SSH_HOST }}:~/deploy-phone.tgz"
+          set -euo pipefail
+          PROJECT_DIR="$HOME/mobian-web-monitor"
+          mkdir -p "$PROJECT_DIR"
+          tar \
+            --exclude='.env' \
+            --exclude='volumes' \
+            -czf /tmp/mobian-deploy-phone.tgz \
+            -C "$GITHUB_WORKSPACE" deploy/phone
+          tar -xzf /tmp/mobian-deploy-phone.tgz -C "$PROJECT_DIR"
+          rm -f /tmp/mobian-deploy-phone.tgz
 
       - name: Deploy on phone
-        if: steps.preflight.outputs.configured == 'true'
         run: |
-          ssh -p "${{ secrets.PHONE_SSH_PORT || '22' }}" \
-            "${{ secrets.PHONE_SSH_USER }}@${{ secrets.PHONE_SSH_HOST }}" '
-            set -euo pipefail
-            PROJECT_DIR=~/mobian-web-monitor
-            mkdir -p "$PROJECT_DIR"
-            tar -xzf ~/deploy-phone.tgz -C "$PROJECT_DIR"
-            rm -f ~/deploy-phone.tgz
-            chmod +x "$PROJECT_DIR/deploy/phone/update.sh"
-            cd "$PROJECT_DIR/deploy/phone"
-            ./update.sh
-          '
+          set -euo pipefail
+          PROJECT_DIR="$HOME/mobian-web-monitor/deploy/phone"
+          chmod +x "$PROJECT_DIR/update.sh"
+          cd "$PROJECT_DIR"
+          if [[ ! -f .env ]]; then
+            echo "deploy/phone/.env is missing on the phone. Create it once from .env.example before enabling auto-deploy." >&2
+            exit 1
+          fi
+          ./update.sh

@@ -34,20 +34,26 @@ Note: CPU/RAM/Battery collectors read from `/proc` and `/sys`, which only work o
 
 ## Production Deployment
 
-1. Set up GitHub Secrets (see below)
-2. Push to `main` → CI builds and pushes `linux/arm64` image to GHCR
-3. On the device, copy `deploy/phone/` files
-4. Create `.env` from `.env.example`
-5. Run `bash update.sh` or trigger the Deploy workflow
+1. Push to `main` -> CI builds and pushes `linux/arm64` image to GHCR
+2. `Deploy Phone` runs on the phone's self-hosted GitHub Actions runner
+3. The runner updates `deploy/phone` locally on the phone
+4. The runner runs `deploy/phone/update.sh`
+5. Runtime data and local `.env` stay on the phone
 
-### Required GitHub Secrets
+Shared Caddy note:
+- Public ingress for this project is managed by the shared Caddy repository.
+- See `Caddy.MD` in this repo and the source-of-truth repo: https://github.com/FA72/CaddyConfigurator
 
-| Secret | Description |
+### Required Phone Runtime Config
+
+| Variable | Description |
 |--------|-------------|
-| `DEPLOY_HOST` | SSH host (e.g. `192.168.1.130`) |
-| `DEPLOY_USER` | SSH user (e.g. `sshadmin`) |
-| `DEPLOY_SSH_PRIVATE_KEY` | SSH private key for deploy |
-| `MONITOR_AUTH_HASH` | PBKDF2 password hash |
+| `MONITOR_AUTH_HASH` | PBKDF2 password hash stored in the phone-side `.env` |
+
+Notes:
+- No repository SSH deploy secrets are required for normal phone deployment.
+- `MONITOR_AUTH_HASH` is runtime configuration on the phone, not a GitHub Actions deploy secret in the current setup.
+- Deploy runs on the phone through a self-hosted GitHub Actions runner.
 
 ### Device Setup
 
@@ -55,11 +61,18 @@ Note: CPU/RAM/Battery collectors read from `/proc` and `/sys`, which only work o
 # Find Docker group GID
 getent group docker | cut -d: -f3
 
-# Create deploy directory
+# Create deploy directories once
 mkdir -p ~/mobian-web-monitor/deploy/phone/volumes/history
+mkdir -p ~/mobian-web-monitor/deploy/phone/volumes/protection-keys
 
-# Copy deploy files and create .env
+# Create .env from .env.example once
+# Then keep .env on the phone as local runtime state
 ```
+
+Notes:
+- The phone must have a self-hosted GitHub Actions runner registered for this repository.
+- The runner user must have Docker access.
+- The deploy workflow no longer depends on external SSH from GitHub-hosted runners.
 
 ## Architecture
 
@@ -110,3 +123,4 @@ dotnet run
 ## Деплой
 
 См. английскую секцию выше. Файлы деплоя в `deploy/phone/`.
+Схема деплоя теперь рассчитана на self-hosted GitHub Actions runner на самом телефоне, без внешнего SSH-доступа от GitHub-hosted runner.

@@ -9,9 +9,13 @@
 
 ## Where to store secrets
 
-- **GitHub Secrets** for CI/CD (`MONITOR_AUTH_HASH`, `DEPLOY_SSH_PRIVATE_KEY`, etc.)
+- **Phone-side `.env` file** for runtime-only values such as `MONITOR_AUTH_HASH`
 - **`.env` file** on the target device (not in Git)
 - **Environment variables** passed via `compose.yaml`
+
+Notes:
+- Normal deploy no longer depends on external SSH from GitHub-hosted runners.
+- In the current self-hosted setup, `MONITOR_AUTH_HASH` is not consumed as a GitHub Actions deploy secret.
 
 ## Generating a password hash
 
@@ -27,7 +31,6 @@ Copy the output hash to your `.env` file as `MONITOR_AUTH_HASH`.
 These values must ONLY exist in runtime environment, never in source code:
 
 - `Auth:PasswordHash` / `MONITOR_AUTH_HASH`
-- `DEPLOY_SSH_PRIVATE_KEY`
 - Any API tokens
 
 ## Authentication

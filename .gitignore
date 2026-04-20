@@ -32,3 +32,5 @@ deploy/phone/volumes/
 publish/
 screens_test/
 screens_test_sftp/
+Caddy.MD
+.github/copilot-instructions.md
