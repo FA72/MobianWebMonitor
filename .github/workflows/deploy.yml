@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: mobian-monitor-phone-deploy
@@ -43,6 +44,13 @@ jobs:
             -C "$GITHUB_WORKSPACE" deploy/phone
           tar -xzf /tmp/mobian-deploy-phone.tgz -C "$PROJECT_DIR"
           rm -f /tmp/mobian-deploy-phone.tgz
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy on phone
         run: |
