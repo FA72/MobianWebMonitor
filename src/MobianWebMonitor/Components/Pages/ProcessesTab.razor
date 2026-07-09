@@ -1,0 +1,92 @@
+@namespace MobianWebMonitor.Components
+
+<div class="processes-tab">
+    @if (Processes.Count == 0)
+    {
+        <div class="empty-state">@L["NoProcessesFound"]</div>
+    }
+    else
+    {
+        <div class="process-summary">
+            <span>@L["ProcessCount"]</span>
+            <span>@Processes.Count</span>
+        </div>
+
+        @foreach (var process in Processes)
+        {
+            <div class="process-card">
+                <div class="process-header">
+                    <span class="process-name">@process.Name</span>
+                    <span class="process-pid">@L["PID"] @process.Pid</span>
+                </div>
+                <div class="process-command" title="@process.Command">@process.Command</div>
+                <div class="process-details">
+                    <div class="process-detail">
+                        <span class="label">@L["User"]</span>
+                        <span class="value">@process.User</span>
+                    </div>
+                    <div class="process-detail">
+                        <span class="label">@L["Status"]</span>
+                        <span class="value">@FormatState(process.State)</span>
+                    </div>
+                    <div class="process-detail">
+                        <span class="label">@L["CPU"]</span>
+                        <span class="value">@process.CpuUsagePercent.ToString("F1")%</span>
+                    </div>
+                    <div class="process-detail">
+                        <span class="label">@L["RAM"]</span>
+                        <span class="value">@FormatBytes(process.MemoryBytes)</span>
+                    </div>
+                    <div class="process-detail">
+                        <span class="label">@L["Threads"]</span>
+                        <span class="value">@process.ThreadCount</span>
+                    </div>
+                    <div class="process-detail">
+                        <span class="label">@L["Uptime"]</span>
+                        <span class="value">@FormatUptime(process.StartedAtUtc)</span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<ProcessInfo> Processes { get; set; } = [];
+
+    private string FormatState(string? value) =>
+        value switch
+        {
+            "R" => L["Running"],
+            "S" => L["Sleeping"],
+            "D" => L["Waiting"],
+            "Z" => L["Zombie"],
+            "T" or "t" => L["Stopped"],
+            "I" => L["Idle"],
+            _ when string.IsNullOrWhiteSpace(value) => L["NotAvailable"],
+            _ => value
+        };
+
+    private string FormatUptime(DateTime? startedAtUtc)
+    {
+        if (!startedAtUtc.HasValue)
+            return L["NotAvailable"].Value;
+
+        var elapsed = DateTime.UtcNow - startedAtUtc.Value;
+        if (elapsed < TimeSpan.Zero)
+            elapsed = TimeSpan.Zero;
+
+        if (elapsed.TotalDays >= 1)
+            return $"{elapsed.Days}{L["DayShort"]} {elapsed.Hours:00}:{elapsed.Minutes:00}";
+
+        return $"{(int)elapsed.TotalHours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+    }
+
+    private static string FormatBytes(long bytes) => bytes switch
+    {
+        >= 1_073_741_824 => $"{bytes / 1_073_741_824.0:F1} GB",
+        >= 1_048_576 => $"{bytes / 1_048_576.0:F1} MB",
+        >= 1024 => $"{bytes / 1024.0:F1} KB",
+        _ => $"{bytes} B"
+    };
+}

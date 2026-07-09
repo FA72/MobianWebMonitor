@@ -28,6 +28,7 @@
         <button class="tab @(_activeTab == "cpu" ? "active" : "")" @onclick="@(() => SetTab("cpu"))">@L["CPU"]</button>
         <button class="tab @(_activeTab == "ram" ? "active" : "")" @onclick="@(() => SetTab("ram"))">@L["RAM"]</button>
         <button class="tab @(_activeTab == "docker" ? "active" : "")" @onclick="@(() => SetTab("docker"))">@L["Docker"]</button>
+        <button class="tab @(_activeTab == "processes" ? "active" : "")" @onclick="@(() => SetTab("processes"))">@L["Processes"]</button>
     </div>
 
     <div class="tab-content">
@@ -44,6 +45,9 @@
                 break;
             case "docker":
                 <DockerTab Containers="@_snapshot.DockerContainers" />
+                break;
+            case "processes":
+                <ProcessesTab Processes="@_snapshot.Processes" />
                 break;
         }
     </div>

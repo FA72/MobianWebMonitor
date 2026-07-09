@@ -37,6 +37,7 @@
   <data name="CPU" xml:space="preserve"><value>CPU</value></data>
   <data name="RAM" xml:space="preserve"><value>RAM</value></data>
   <data name="Docker" xml:space="preserve"><value>Docker</value></data>
+  <data name="Processes" xml:space="preserve"><value>Processes</value></data>
   <data name="Logout" xml:space="preserve"><value>Logout</value></data>
   <data name="Temperature" xml:space="preserve"><value>Temp</value></data>
   <data name="Current" xml:space="preserve"><value>Current</value></data>
@@ -57,6 +58,15 @@
   <data name="Image" xml:space="preserve"><value>Image</value></data>
   <data name="Uptime" xml:space="preserve"><value>Uptime</value></data>
   <data name="NoContainersFound" xml:space="preserve"><value>No containers found or Docker is unavailable.</value></data>
+  <data name="NoProcessesFound" xml:space="preserve"><value>No processes found or /proc is unavailable.</value></data>
+  <data name="ProcessCount" xml:space="preserve"><value>Processes</value></data>
+  <data name="PID" xml:space="preserve"><value>PID</value></data>
+  <data name="User" xml:space="preserve"><value>User</value></data>
+  <data name="Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Sleeping" xml:space="preserve"><value>Sleeping</value></data>
+  <data name="Waiting" xml:space="preserve"><value>Waiting</value></data>
+  <data name="Zombie" xml:space="preserve"><value>Zombie</value></data>
+  <data name="Idle" xml:space="preserve"><value>Idle</value></data>
   <data name="FiveMinutes" xml:space="preserve"><value>5 min</value></data>
   <data name="FifteenMinutes" xml:space="preserve"><value>15 min</value></data>
   <data name="OneHour" xml:space="preserve"><value>1 hour</value></data>
