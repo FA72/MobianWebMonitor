@@ -91,7 +91,6 @@ builder.Services.AddSingleton<MemoryCollector>();
 builder.Services.AddSingleton<BatteryCollector>();
 builder.Services.AddSingleton<DiskCollector>();
 builder.Services.AddSingleton<DockerCollector>();
-builder.Services.AddSingleton<ProcessCollector>();
 builder.Services.AddSingleton<SystemdServiceCollector>();
 
 // Background services

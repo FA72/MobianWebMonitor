@@ -8,7 +8,6 @@ public sealed class MetricsSnapshot
     public MemoryMetrics Memory { get; set; } = new();
     public DiskMetrics Disk { get; set; } = new();
     public List<DockerContainerInfo> DockerContainers { get; set; } = [];
-    public List<ProcessInfo> Processes { get; set; } = [];
     public ServiceStatusInfo BatteryLimiterService { get; set; } = new();
     public bool IsStale { get; set; }
     public DateTime LastFastUpdate { get; set; }

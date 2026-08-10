@@ -6,27 +6,23 @@ public sealed class SlowMetricsService : BackgroundService
 {
     private readonly DiskCollector _disk;
     private readonly DockerCollector _docker;
-    private readonly ProcessCollector _processes;
     private readonly SystemdServiceCollector _systemd;
     private readonly MetricsAggregator _aggregator;
     private readonly ILogger<SlowMetricsService> _logger;
 
     private const int DiskIntervalSeconds = 30;
     private const int DockerIntervalSeconds = 15;
-    private const int ProcessIntervalSeconds = 5;
     private const int ServiceIntervalSeconds = 10;
 
     public SlowMetricsService(
         DiskCollector disk,
         DockerCollector docker,
-        ProcessCollector processes,
         SystemdServiceCollector systemd,
         MetricsAggregator aggregator,
         ILogger<SlowMetricsService> logger)
     {
         _disk = disk;
         _docker = docker;
-        _processes = processes;
         _systemd = systemd;
         _aggregator = aggregator;
         _logger = logger;
@@ -49,16 +45,11 @@ public sealed class SlowMetricsService : BackgroundService
                 tick += 5;
 
                 if (tick % DockerIntervalSeconds == 0 ||
-                    tick % ProcessIntervalSeconds == 0 ||
                     tick % ServiceIntervalSeconds == 0)
                 {
                     var docker = tick % DockerIntervalSeconds == 0
                         ? await _docker.CollectAsync(stoppingToken)
                         : _aggregator.Current.DockerContainers;
-
-                    var processes = tick % ProcessIntervalSeconds == 0
-                        ? _processes.Collect()
-                        : _aggregator.Current.Processes;
 
                     var service = tick % ServiceIntervalSeconds == 0
                         ? await _systemd.CollectAsync("battery-limiter.service", stoppingToken)
@@ -68,7 +59,7 @@ public sealed class SlowMetricsService : BackgroundService
                         ? _disk.Collect()
                         : _aggregator.Current.Disk;
 
-                    _aggregator.UpdateSlow(disk, docker, processes, service);
+                    _aggregator.UpdateSlow(disk, docker, service);
                 }
 
                 if (tick >= 300) tick = 0; // Reset counter
@@ -87,9 +78,8 @@ public sealed class SlowMetricsService : BackgroundService
         {
             var disk = _disk.Collect();
             var docker = await _docker.CollectAsync(ct);
-            var processes = _processes.Collect();
             var service = await _systemd.CollectAsync("battery-limiter.service", ct);
-            _aggregator.UpdateSlow(disk, docker, processes, service);
+            _aggregator.UpdateSlow(disk, docker, service);
         }
         catch (Exception ex)
         {

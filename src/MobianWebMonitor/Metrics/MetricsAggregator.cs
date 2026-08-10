@@ -29,14 +29,12 @@ public sealed class MetricsAggregator
     public void UpdateSlow(
         DiskMetrics disk,
         List<DockerContainerInfo> docker,
-        List<ProcessInfo> processes,
         ServiceStatusInfo serviceStatus)
     {
         lock (_lock)
         {
             _current.Disk = disk;
             _current.DockerContainers = docker;
-            _current.Processes = processes;
             _current.BatteryLimiterService = serviceStatus;
             _current.Battery.BatteryLimiterStatus = serviceStatus.ActiveState;
             _current.LastSlowUpdate = DateTime.UtcNow;

@@ -343,82 +343,45 @@ html, body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Docker and Processes Tabs */
-.docker-tab,
-.processes-tab {
+/* Docker Tab */
+.docker-tab {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.docker-card,
-.process-card,
-.process-summary {
+.docker-card {
     background: var(--bg-card);
     border-radius: var(--radius);
     padding: 12px;
 }
 
-.docker-name,
-.process-name {
+.docker-name {
     font-weight: 600;
     margin-bottom: 6px;
     font-size: 0.95rem;
 }
 
-.docker-details,
-.process-details {
+.docker-details {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px 12px;
 }
 
-.docker-detail,
-.process-detail {
+.docker-detail {
     display: flex;
     justify-content: space-between;
     font-size: 0.85rem;
     gap: 8px;
 }
 
-.docker-detail .label,
-.process-detail .label {
+.docker-detail .label {
     color: var(--text-secondary);
 }
 
-.docker-detail .value,
-.process-detail .value {
+.docker-detail .value {
     font-variant-numeric: tabular-nums;
     text-align: right;
-}
-
-.process-summary,
-.process-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.process-summary {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-}
-
-.process-pid {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-.process-command {
-    color: var(--text-secondary);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-    line-height: 1.35;
-    margin: 2px 0 8px;
-    overflow-wrap: anywhere;
 }
 
 .metric-stale {
